@@ -4,7 +4,7 @@
 # How to run
 Ensure Python 3.13.5 is installed. You can check by running: python3 --version
 
-Open terminal and navigate to the project folder: cd path/to/password_manager
+Open terminal and navigate to the project folder: cd path/to/final-project-04-personal-safe
 
 Run the project: python3 main.py 
 
