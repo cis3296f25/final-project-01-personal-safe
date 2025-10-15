@@ -6,7 +6,7 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
 
 Open terminal and navigate to the project folder: cd path/to/password_manager
 
-Run the project: python3 personal_safe.py 
+Run the project: python3 main.py 
 
 # How to contribute
 Follow this project board to know the latest status of the project: [[http://...](https://github.com/orgs/cis3296f25/projects/47)] 
