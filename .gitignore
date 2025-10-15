@@ -18,3 +18,8 @@ env/
 pip-wheel-metadata/
 .mypy_cache/
 .pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+main.spec
