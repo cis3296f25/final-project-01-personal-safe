@@ -4,15 +4,32 @@
 # How to run
 Ensure Python 3.13.5 is installed. You can check by running: python3 --version
 
-Open terminal and navigate to the project folder: cd path/to/password_manager
-
-Run the project: python3 personal_safe.py 
+## To build the project:
+1. Change directory to project root  
+`cd final-project-04-personal-safe`
+2. Create a virtual environment  
+`python -m venv venv`
+3. Point to the new virtual environment as the source  
+    * Windows  
+    `.venv\Scripts\activate`
+    * Mac/Linux  
+    `source venv/bin/activate`
+4. Install PyInstaller  
+`pip install pyinstaller`
+5. Build the application  
+`pyinstaller --onefile --windowed main.py`
+6. Run Personal Safe
+    * Windows  
+    Run the executable in the `dist` file
+    * Mac/Linux  
+    Allow the executable to run:  
+    `chmod +x ./dist/main`  
+    Run the executable:  
+    `./dist/main` 
 
 # How to contribute
 Follow this project board to know the latest status of the project: [[http://...](https://github.com/orgs/cis3296f25/projects/47)] 
 
 ### How to build
-- Use this github repository: [...](https://github.com/cis3296f25/final-project-01-personal-safe) 
+- Use this github repository: [...](https://github.com/cis3296f25/final-project-04-personal-safe) 
 - Use main branch for a more stable release.  
-- Use InteliJ 11
-- What is expected to happen when the app starts:
