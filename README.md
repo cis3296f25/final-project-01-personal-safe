@@ -29,6 +29,8 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     `chmod +x ./dist/main`  
     Run the executable:  
     `./dist/main` 
+7. To deactivate virtual environment:
+    `deactivate`
 
 # How to contribute
 Follow this project board to know the latest status of the project: [[http://...](https://github.com/orgs/cis3296f25/projects/47)] 
