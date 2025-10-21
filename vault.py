@@ -17,3 +17,16 @@ class Vault:
 
     def is_empty(self) -> bool:
         return not self._data
+    
+    def get_sites(self) -> List[str]:
+        #Return list of site names
+        return list(self._data.keys())
+    
+    def delete(self, site: str) -> bool:
+        #Delete entry by site name
+        #true if deleted, false if not found
+        if site in self._data:
+            del self._data[site]
+            storage.save_vault(self._data)
+            return True
+        return False
