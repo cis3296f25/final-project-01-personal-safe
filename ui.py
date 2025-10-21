@@ -50,6 +50,26 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         #should we catch an error here?
 
 #create pop up window using listbox?
+    win = tk.Toplevel(root)
+    win.title("Delete Entry")
+    win.geometry("300x250")
+    win.transient(root)
+    win.grab_set()
+
+    tk.Label(win, text="Select site to delete:").pack(pady=(8, 0))
+
+    list_frame = tk.Frame(win)
+    list_frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+    listbox = tk.Listbox(list_frame, selectmode=tk.SINGLE)
+    listbox.pack(side="left", fill="both", expand=True)
+
+    scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=listbox.yview)
+    scrollbar.pack(side="right", fill="y")
+    listbox.configure(yscrollcommand=scrollbar.set)
+
+    for s in sites:
+        listbox.insert(tk.END, s)
 
     tk.Button(root, text="Add Password", command=add_password).pack(pady=10)
     tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=10)
