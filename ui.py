@@ -31,7 +31,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         if not sites:
             messagebox.showinfo("Delete", "Vault is empty.")
             return
-        #create pop up window using listbox?
+        #create pop up window using listbox
         win = tk.Toplevel(root)
         win.title("Delete Entry")
         win.geometry("300x250")
@@ -68,7 +68,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
                 #this is where it actually removes it
                 listbox.delete(select[0])
                 return
-            #should we catch an error here?
+            #thoughts about catching an error here?
         tk.Button(win, text="Delete Selected", command=perform_delete).pack()
         tk.Button(win, text="Close", command=win.destroy).pack()
 
