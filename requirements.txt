@@ -1,0 +1,10 @@
+
+# Requirements for Personal Safe
+# Core runtime dependencies
+cryptography>=40.0.0
+bcrypt>=4.0.1
+customtkinter>=5.2.2
+
+# Optional (development / packaging)
+pyinstaller>=5.10.1  # used for building single-file executables
+
