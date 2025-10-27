@@ -76,6 +76,39 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
             messagebox.showinfo("Edit", "Vault is empty.")
             return
         
+        win = tk.Toplevel(root)
+        win.title("Edit Entry")
+        win.geometry("300x250")
+        win.transient(root)
+        win.grab_set()
+
+        tk.Label(win, text="Select site to update:").pack(pady=(8, 0))
+
+        list_frame = tk.Frame(win)
+        list_frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+        listbox = tk.Listbox(list_frame, selectmode=tk.SINGLE)
+        listbox.pack(side="left", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=listbox.yview)
+        scrollbar.pack(side="right", fill="y")
+        listbox.configure(yscrollcommand=scrollbar.set)
+
+        for s in sites:
+            listbox.insert(tk.END, s)
+    
+        def perform_edit():
+            select = listbox.curselection()
+            if not select:
+                messagebox.showwarning("Edit", "Select site please.")
+                return
+            site = listbox.get(select[0])
+
+            #thoughts about catching an error here?
+        tk.Button(win, text="Edit Selected", command=perform_delete).pack()
+        tk.Button(win, text="Close", command=win.destroy).pack()
+
+        
 
     tk.Button(root, text="Add Password", command=add_password).pack(pady=10)
     tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=10)
