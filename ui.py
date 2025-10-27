@@ -31,7 +31,6 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         if not sites:
             messagebox.showinfo("Delete", "Vault is empty.")
             return
-        #create pop up window using listbox
         win = tk.Toplevel(root)
         win.title("Delete Entry")
         win.geometry("300x250")
@@ -65,13 +64,20 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
             deleted = vault.delete(site)
             if deleted:
                 messagebox.showinfo("Deleted", f"Deleted entry for {site}.")
-                #this is where it actually removes it
                 listbox.delete(select[0])
                 return
             #thoughts about catching an error here?
         tk.Button(win, text="Delete Selected", command=perform_delete).pack()
         tk.Button(win, text="Close", command=win.destroy).pack()
 
+    def edit_password():
+        sites = vault.get_sites()
+        if not sites:
+            messagebox.showinfo("Edit", "Vault is empty.")
+            return
+        
+
     tk.Button(root, text="Add Password", command=add_password).pack(pady=10)
     tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=10)
     tk.Button(root, text="Delete Password", command=delete_password).pack(pady=10)
+    tk.Button(root, text="Edit Password", command=edit_password).pack(pady=10)    
