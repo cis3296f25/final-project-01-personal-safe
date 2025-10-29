@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from vault import Vault
+from generate import generate_password
 
 
 def build_ui(root: tk.Tk, vault: Vault) -> None:
@@ -11,12 +12,19 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         site = simpledialog.askstring("Site", "Enter website/service name:")
         if site is None:
             return
-        pwd = simpledialog.askstring("Password", "Enter password:")
-        if pwd is None:
-            return
+
+        use_generated = messagebox.askyesno("Generate Password?", "Generate a random password?")
+
+        if use_generated:
+            pwd = generate_password()
+            messagebox.showinfo("Generated Password", f"Generated password for {site}:\n\n{pwd}")
+        else:
+            pwd = simpledialog.askstring("Password", "Enter password:")
+            if pwd is None:
+                return
+
         vault.add(site, pwd)
-        if site and pwd:
-            messagebox.showinfo("Saved", f"Password for {site} saved!")
+        messagebox.showinfo("Saved", f"Password for {site} saved!")
 
     def view_passwords():
         items = vault.items()
@@ -52,7 +60,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
 
         for s in sites:
             listbox.insert(tk.END, s)
-    
+
         def perform_delete():
             select = listbox.curselection()
             if not select:
