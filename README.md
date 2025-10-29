@@ -38,3 +38,65 @@ Follow this project board to know the latest status of the project: [[http://...
 ### How to build
 - Use this github repository: [...](https://github.com/cis3296f25/final-project-04-personal-safe) 
 - Use main branch for a more stable release.  
+
+# Class Diagram
+```mermaid
+classDiagram
+%% Application entry
+class Main {
+  +main()
+}
+Main --> MasterPassword
+Main --> Vault
+
+%% Master password handling
+class MasterPassword {
+  +createMasterPassword(password)
+  +verifyMasterPassword(password) bool
+  +getMasterPassword(parent) str
+  -masterHashFile: Path
+}
+MasterPassword ..> Vault
+
+%% Vault (domain)
+class Vault {
+  +__init__(master_password)
+  +add(site, pwd)
+  +items() List~Tuple~
+  +is_empty() bool
+  +get_sites() List~str~
+  +delete(site) bool
+  -_data: Dict
+  -_master_password: str
+}
+Vault --> Storage
+Vault --> UI
+
+%% Storage (persistence)
+class Storage {
+  +save_vault(vault: Dict, master_password: str, vault_file: Optional[str]=None)
+  +load_vault(master_password: str, vault_file: Optional[str]=None) Dict
+  -VAULT_FILE: str
+}
+Storage ..> CryptoUtils
+
+%% Crypto utilities
+class CryptoUtils {
+  +generate_key() bytes
+  +encrypt(plaintext: str, key: bytes) str
+  +decrypt(token_b64: str, key: bytes) str
+  +derive_key(password: str, salt: bytes, iterations=390000) bytes
+  +generate_salt(length=16) bytes
+}
+CryptoUtils <.. Storage
+
+%% UI (Tkinter)
+class UI {
+  +build_ui(root, vault)
+  -add_password()
+  -view_passwords()
+  -delete_password()
+}
+UI --> Vault
+Main --> UI
+```
