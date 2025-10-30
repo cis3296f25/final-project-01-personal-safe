@@ -32,3 +32,6 @@ class Vault:
             storage.save_vault(self._data, self._master_password)
             return True
         return False
+    
+    def get(self, site):
+        return self._data.get(site)
