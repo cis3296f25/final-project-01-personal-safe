@@ -151,10 +151,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
 
         tk.Button(win, text="Edit Selected", command=perform_edit).pack()
         tk.Button(win, text="Close", command=win.destroy).pack()
-        
-    tk.Button(root, text="Add Password", command=add_password).pack(pady=8)
-    tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=8)
-    tk.Button(root, text="Delete Password", command=delete_password).pack(pady=8)
+     
     tk.Button(root, text="Edit Password", command=edit_password).pack(pady=8)    
     tk.Button(root, text="Add Password", command=add_password).pack(pady=10)
     tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=10)
