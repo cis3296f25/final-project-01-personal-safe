@@ -6,7 +6,7 @@ def test_vault_initial_load():
 
 def test_add_and_items():
     v = vault.Vault(master_password="pass")
-    v._data = {}  # override loaded data to empty for test
+    v._data = {}
     v.add("github.com", "meow123")
     assert ("github.com", "meow123") in v.items()
 
@@ -15,7 +15,6 @@ def test_add_ignores_empty_inputs():
     v._data = {}
     v.add("", "somepwd")
     v.add("google.com", "")
-    # nothing should have been added
     assert v.is_empty()
 
 def test_get_sites_and_get():
