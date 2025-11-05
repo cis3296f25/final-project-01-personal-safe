@@ -14,8 +14,8 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     `.venv\Scripts\activate`
     * Mac/Linux  
     `source venv/bin/activate`
-4. Install PyInstaller  
-`pip install pyinstaller`
+4. Install Dependencies  
+`pip install -r requirements.txt`
 5. Build the application  
 `pyinstaller --onefile --windowed main.py`
 6. Run Personal Safe
