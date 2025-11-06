@@ -42,6 +42,29 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         #output = "\n".join([f"{site}: {pwd}" for site, pwd in vault.items()])
         #messagebox.showinfo("Vault", output or "Vault is empty.")
 
+        #new window
+        win = tk.Toplevel(root)
+        win.title("Vault")
+        win.geometry("300x250")
+        win.transient(root)
+        win.grab_set()
+
+        tk.Label(win, text="Select a site to copy its password:").pack(pady=(8, 0))
+
+        #listbox n scrollbar. upgrading the ui a bit
+        frame = tk.Frame(win)
+        frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+        listbox = tk.Listbox(frame, selectmode=tk.SINGLE)
+        listbox.pack(side="left", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(frame, orient="vertical", command=listbox.yview)
+        scrollbar.pack(side="right", fill="y")
+        listbox.configure(yscrollcommand=scrollbar.set)
+
+        for site, _ in items:
+            listbox.insert(tk.END, site)
+        
         #copy function
         def copy_selected():
             sel = listbox.curselection()
@@ -62,10 +85,9 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
             else:
                 messagebox.showerror("Copy", "Failed to copy to clipboard.")
         btn_frame = tk.Frame(win)
+        btn_frame.pack(fill="x", padx=8, pady=(0, 8))
         tk.Button(btn_frame, text="Copy", command=copy_selected).pack(side="left", padx=4)
-
-        
-        
+        tk.Button(btn_frame, text="Close", command=win.destroy).pack(side="right", padx=4)
 
     def delete_password():
         sites = vault.get_sites()
