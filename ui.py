@@ -31,6 +31,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
             root.clipboard_clear()
             root.clipboard_append(text)
             root.update()
+            return True
         except Exception:
             return False
 
