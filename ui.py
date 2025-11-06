@@ -45,11 +45,11 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         #new window
         win = tk.Toplevel(root)
         win.title("Vault")
-        win.geometry("300x250")
+        win.geometry("400x300")
         win.transient(root)
         win.grab_set()
 
-        tk.Label(win, text="Select a site to copy its password:").pack(pady=(8, 0))
+        tk.Label(win, text="Saved Entries:").pack(pady=(8, 0))
 
         #listbox n scrollbar. upgrading the ui a bit
         frame = tk.Frame(win)
@@ -64,7 +64,35 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
 
         for site, _ in items:
             listbox.insert(tk.END, site)
-        
+
+        #new password display
+        details_frame = tk.Frame(win)
+        details_frame.pack(fill="x", padx=8, pady=(0, 8))
+
+        tk.Label(details_frame, text="Password:").grid(row=0, column=0, sticky="w")
+        pwd_var = tk.StringVar(value="")
+        masked_var = tk.BooleanVar(value=True)
+
+        pwd_entry = tk.Entry(details_frame, textvariable=pwd_var, state="readonly", width=35)
+        pwd_entry.grid(row=0, column=1, padx=(6, 0))
+
+        def refresh_selected(_evt=None):
+            sel = listbox.curselection()
+            if not sel:
+                pwd_var.set("")
+                return
+            site = listbox.get(sel[0])
+            try:
+                pwd = vault.get(site)
+            except Exception:
+                pwd = dict(vault.items()).get(site, "")
+            pwd_var.set("*" * len(pwd) if masked_var.get() else pwd)
+
+        listbox.bind("<<ListboxSelect>>", refresh_selected)
+
+        def toggle_show():
+            masked_var.set(not masked_var.get())
+            refresh_selected()
         #copy function
         def copy_selected():
             sel = listbox.curselection()
@@ -84,8 +112,11 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
                 messagebox.showinfo("Copied", f"Password for {site} copied to clipboard.")
             else:
                 messagebox.showerror("Copy", "Failed to copy to clipboard.")
+
         btn_frame = tk.Frame(win)
         btn_frame.pack(fill="x", padx=8, pady=(0, 8))
+
+        tk.Button(btn_frame, text="Show / Hide", command=toggle_show).pack(side="left", padx=4)
         tk.Button(btn_frame, text="Copy", command=copy_selected).pack(side="left", padx=4)
         tk.Button(btn_frame, text="Close", command=win.destroy).pack(side="right", padx=4)
 
