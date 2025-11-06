@@ -26,13 +26,100 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         vault.add(site, pwd)
         messagebox.showinfo("Saved", f"Password for {site} saved!")
 
+    def copy_to_clipboard(text: str, root: tk.Tk):
+        try:
+            root.clipboard_clear()
+            root.clipboard_append(text)
+            root.update()
+            return True
+        except Exception:
+            return False
+
     def view_passwords():
         items = vault.items()
         if not items:
             messagebox.showinfo("Vault", "Vault is empty.")
             return
-        output = "\n".join([f"{site}: {pwd}" for site, pwd in vault.items()])
-        messagebox.showinfo("Vault", output or "Vault is empty.")
+        #output = "\n".join([f"{site}: {pwd}" for site, pwd in vault.items()])
+        #messagebox.showinfo("Vault", output or "Vault is empty.")
+
+        #new window
+        win = tk.Toplevel(root)
+        win.title("Vault")
+        win.geometry("400x300")
+        win.transient(root)
+        win.grab_set()
+
+        tk.Label(win, text="Saved Entries:").pack(pady=(8, 0))
+
+        #listbox n scrollbar. upgrading the ui a bit
+        frame = tk.Frame(win)
+        frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+        listbox = tk.Listbox(frame, selectmode=tk.SINGLE)
+        listbox.pack(side="left", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(frame, orient="vertical", command=listbox.yview)
+        scrollbar.pack(side="right", fill="y")
+        listbox.configure(yscrollcommand=scrollbar.set)
+
+        for site, _ in items:
+            listbox.insert(tk.END, site)
+
+        #new password display
+        details_frame = tk.Frame(win)
+        details_frame.pack(fill="x", padx=8, pady=(0, 8))
+
+        tk.Label(details_frame, text="Password:").grid(row=0, column=0, sticky="w")
+        pwd_var = tk.StringVar(value="")
+        masked_var = tk.BooleanVar(value=True)
+
+        pwd_entry = tk.Entry(details_frame, textvariable=pwd_var, state="readonly", width=35)
+        pwd_entry.grid(row=0, column=1, padx=(6, 0))
+
+        def refresh_selected(_evt=None):
+            sel = listbox.curselection()
+            if not sel:
+                pwd_var.set("")
+                return
+            site = listbox.get(sel[0])
+            try:
+                pwd = vault.get(site)
+            except Exception:
+                pwd = dict(vault.items()).get(site, "")
+            pwd_var.set("*" * len(pwd) if masked_var.get() else pwd)
+
+        listbox.bind("<<ListboxSelect>>", refresh_selected)
+
+        def toggle_show():
+            masked_var.set(not masked_var.get())
+            refresh_selected()
+        #copy function
+        def copy_selected():
+            sel = listbox.curselection()
+            if not sel:
+                messagebox.showwarning("Copy", "Select a site first.")
+                return
+            site = listbox.get(sel[0])
+            try:
+                pwd = vault.get(site)
+            except Exception:
+                pwd = dict(vault.items()).get(site, "")
+            if not pwd:
+                messagebox.showwarning("Copy", "No password found")
+                return
+            success = copy_to_clipboard(pwd, root)
+            if success:
+                messagebox.showinfo("Copied", f"Password for {site} copied to clipboard.")
+            else:
+                messagebox.showerror("Copy", "Failed to copy to clipboard.")
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(fill="x", padx=8, pady=(0, 8))
+
+        tk.Button(btn_frame, text="Show / Hide", command=toggle_show).pack(side="left", padx=4)
+        tk.Button(btn_frame, text="Copy", command=copy_selected).pack(side="left", padx=4)
+        tk.Button(btn_frame, text="Close", command=win.destroy).pack(side="right", padx=4)
 
     def delete_password():
         sites = vault.get_sites()
@@ -74,7 +161,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
                 messagebox.showinfo("Deleted", f"Deleted entry for {site}.")
                 listbox.delete(select[0])
                 return
-            #thoughts about catching an error here?
+
         tk.Button(win, text="Delete Selected", command=perform_delete).pack()
         tk.Button(win, text="Close", command=win.destroy).pack()
 
@@ -112,7 +199,6 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
                 return
             site = listbox.get(select[0])
 
-            #get current password (use vault.get if available, else scan items)
             current_pwd = None
             if hasattr(vault, "get"):
                 try:
@@ -120,27 +206,22 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
                 except Exception:
                     current_pwd = None
             if current_pwd is None:
-                #fallback method to use items to find the password
                 items = dict(vault.items())
                 current_pwd = items.get(site, "")
 
-            #Ask for new password
             new_pwd = simpledialog.askstring("Edit Password", f"Enter new password for {site}:", initialvalue=current_pwd, parent=win)
             if new_pwd is None:
                 return
             if new_pwd == "":
                 messagebox.showwarning("Edit", "Password cannot be empty.")
                 return
-             #Save to vault: use update(), but fall back to add() if it fails
             try:
                 if hasattr(vault, "update"):
                     ok = vault.update(site, new_pwd)
-                    #allow update to return True/False or raise on error
                     if ok is False:
                         messagebox.showerror("Edit", f"Failed to update password for {site}.")
                         return
                 else:
-                    #fallback
                     vault.add(site, new_pwd)
             except Exception as e:
                 messagebox.showerror("Edit", f"Error saving new password for {site}: {e}")
@@ -152,10 +233,7 @@ def build_ui(root: tk.Tk, vault: Vault) -> None:
         tk.Button(win, text="Edit Selected", command=perform_edit).pack()
         tk.Button(win, text="Close", command=win.destroy).pack()
         
-    tk.Button(root, text="Add Password", command=add_password).pack(pady=8)
-    tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=8)
-    tk.Button(root, text="Delete Password", command=delete_password).pack(pady=8)
-    tk.Button(root, text="Edit Password", command=edit_password).pack(pady=8)    
     tk.Button(root, text="Add Password", command=add_password).pack(pady=10)
     tk.Button(root, text="View Passwords", command=view_passwords).pack(pady=10)
     tk.Button(root, text="Delete Password", command=delete_password).pack(pady=10)
+    tk.Button(root, text="Edit Password", command=edit_password).pack(pady=10) 
