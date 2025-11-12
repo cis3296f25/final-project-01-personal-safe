@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-import storage
+from . import storage
 
 
 class Vault:
@@ -32,6 +32,6 @@ class Vault:
             storage.save_vault(self._data, self._master_password)
             return True
         return False
-    
+
     def get(self, site):
         return self._data.get(site)

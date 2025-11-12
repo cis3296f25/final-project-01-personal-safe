@@ -2,10 +2,16 @@ import json
 import base64
 import os
 from typing import Dict, Optional
-from crypto import CryptoUtils
+from .crypto import CryptoUtils
 
 
 VAULT_FILE = "vault.json"
+
+
+def vault_exists(vault_file: Optional[str] = None) -> bool:
+    """Return True if the vault file exists on disk."""
+    path = vault_file or VAULT_FILE
+    return os.path.exists(path)
 
 
 def save_vault(
@@ -48,7 +54,7 @@ def load_vault(
         if not lines:
             return {}
 
-        # If file has at least 2 lines, assume first line is base64 salt and second+ is cipher text
+        # Expect first line = salt, remaining = ciphertext
         try:
             salt = base64.b64decode(lines[0])
             ciphertext = "\n".join(lines[1:])
@@ -56,6 +62,10 @@ def load_vault(
             plaintext = CryptoUtils.decrypt(ciphertext, key)
             return json.loads(plaintext)
         except Exception:
-            pass
+            # Decryption failed (wrong password or corrupt file)
+            return {}
     except FileNotFoundError:
         return {}
+
+    # Fallback empty dict on any unexpected path
+    return {}

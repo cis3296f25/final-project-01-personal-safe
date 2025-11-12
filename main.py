@@ -1,21 +1,7 @@
-import tkinter as tk
-from vault import Vault
-from ui import build_ui
-from masterPassword import getMasterPassword
+"""Kivy entrypoint for Personal Safe."""
 
-
-def main():
-    root = tk.Tk()
-
-    pw = getMasterPassword(parent=root)
-    if not pw:
-        root.destroy()
-        return
-
-    vault = Vault(pw)
-    build_ui(root, vault)
-    root.mainloop()
+from ui.app import PersonalSafeApp
 
 
 if __name__ == "__main__":
-    main()
+    PersonalSafeApp().run()

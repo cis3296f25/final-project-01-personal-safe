@@ -1,0 +1,338 @@
+#:kivy 2.1.0
+
+
+<AddPasswordScreen>:
+  canvas.before:
+    Color:
+      rgba: 237/255, 231/255, 217/255, 1
+    Rectangle:
+      size: self.size
+      pos: self.pos
+
+  site_field: site_input
+  pwd_field: pwd_input
+  length_slider: length_slider
+
+  BoxLayout:
+    orientation: 'vertical'
+
+    HeaderBox:
+      Label:
+        text: "Add Password"
+        font_size: "24sp"
+        size_hint_x: 0.7
+        bold: True
+
+    AnchorLayout:
+      anchor_x: "center"
+      anchor_y: "center"
+
+      BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+        size_hint: None, None
+        width: min(dp(520), root.width * 0.95)
+        height: self.minimum_height
+                
+        # Site row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(2)
+                    
+          Label:
+            color: 75/255, 66/255, 55/255, 1
+            text: "Site:"
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          CustomTextInput:
+            id: site_input
+            hint_text: "example.com"
+            halign: "right"
+            multiline: False
+            padding_y: (self.height - self.font_size) / 2
+
+        # Password row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+
+          Label:
+            color: 75/255, 66/255, 55/255, 1
+            text: "Password:"
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          CustomTextInput:
+            color: 0,0,0,1
+            id: pwd_input
+            hint_text: "Enter or generate"
+            multiline: False
+            password: True
+            padding_y: (self.height - self.font_size) / 2
+          CustomToggleButton:
+            text: "Show" if self.state == "normal" else "Hide"
+            size_hint_x: None
+            width: dp(70)
+            on_state: pwd_input.password = (self.state == "normal")
+
+        # Length + Generate row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+
+          Label:
+            color: 0,0,0,1
+            text: "Length: " + str(int(length_slider.value))
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          Slider:
+            id: length_slider
+            min: 8
+            max: 20
+            value: 12
+            step: 1
+            value_track: True
+            value_track_color: 213/250, 160/250, 33/250, 1
+          CustomButton:
+            text: "Generate"
+            size_hint_x: None
+            width: dp(110)
+            on_release: root.do_generate()
+
+        # Save row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          CustomButton:
+            text: "Back"
+            size_hint_x: None
+            width: dp(120)
+            on_release: root.goto_home()
+          Widget:
+          CustomButton:
+            text: "Save"
+            size_hint_x: None
+            width: dp(120)
+            on_release: root.do_save()
+
+
+<EditPasswordScreen>:
+  canvas.before:
+    Color:
+      rgba: 237/255, 231/255, 217/255, 1
+    Rectangle:
+      size: self.size
+      pos: self.pos
+
+  site_spinner: site_spinner
+  pwd_field: pwd_input
+  length_slider: length_slider
+
+  BoxLayout:
+    orientation: 'vertical'
+
+    HeaderBox:
+      Label:
+        text: "Edit Password"
+        font_size: "24sp"
+        size_hint_x: 0.7
+        bold: True
+
+    AnchorLayout:
+      anchor_x: "center"
+      anchor_y: "center"
+
+      BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+        size_hint: None, None
+        width: min(dp(520), root.width * 0.95)
+        height: self.minimum_height
+
+
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          Label:
+            color: 75/255, 66/255, 55/255, 1
+            text: "Site:"
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          CustomSpinner:
+            id: site_spinner
+            text: ""
+            size_hint_x: 1
+            values: []
+
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          Label:
+            color: 75/255, 66/255, 55/255, 1
+            text: "New Password:"
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          CustomTextInput:
+            id: pwd_input
+            password: True
+            multiline: False
+          CustomToggleButton:
+            text: "Show" if self.state == "normal" else "Hide"
+            size_hint_x: None
+            width: dp(70)
+            on_state: pwd_input.password = (self.state == "normal")
+
+        # Length + Generate row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+
+          Label:
+            color: 0,0,0,1
+            text: "Length: " + str(int(length_slider.value))
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          Slider:
+            id: length_slider
+            min: 8
+            max: 20
+            value: 12
+            step: 1
+            value_track: True
+            value_track_color: 213/250, 160/250, 33/250, 1
+          CustomButton:
+            text: "Generate"
+            size_hint_x: None
+            width: dp(110)
+            on_release: root.do_generate()
+
+        # Update & Back Row
+        BoxLayout:
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          CustomButton:
+            text: "Back"
+            size_hint_x: None
+            width: dp(100)
+            on_release: root.go_home()
+          Widget:
+          CustomButton:
+            text: "Update"
+            size_hint_x: None
+            width: dp(140)
+            on_release: root.do_update()
+
+        Label:
+          text: root.info_text
+          size_hint_y: None
+          height: dp(24)
+          color: 0.3,0.2,0.2,1
+
+<DeletePasswordScreen>:
+  canvas.before:
+    Color:
+      rgba: 237/255, 231/255, 217/255, 1
+    Rectangle:
+      size: self.size
+      pos: self.pos
+
+  site_spinner: site_spinner
+
+  BoxLayout:
+    orientation: "vertical"
+
+    HeaderBox:
+      Label:
+        text: "Delete Password"
+        font_size: "24sp"
+        size_hint_x: 0.7
+        bold: True
+
+    AnchorLayout:
+      anchor_x: "center"
+      anchor_y: "center"
+
+      BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+        size_hint: None, None
+        width: min(dp(520), root.width * 0.95)
+        height: self.minimum_height
+
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          Label:
+            color: 75/255, 66/255, 55/255, 1
+            text: "Site:"
+            size_hint_x: None
+            width: dp(90)
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+          CustomSpinner:
+            id: site_spinner
+            text: ""
+            size_hint_x: 1
+            values: []
+
+        # Delete & Back Row
+        BoxLayout:
+          orientation: "horizontal"
+          size_hint_y: None
+          height: dp(44)
+          spacing: dp(8)
+          CustomButton:
+            text: "Back"
+            size_hint_x: None
+            width: dp(120)
+            on_release: root.go_home()
+          Widget:
+          CustomButton:
+            text: "Delete"
+            size_hint_x: None
+            width: dp(120)
+            on_release: root.do_delete()
+
+        Label:
+          text: root.info_text
+          size_hint_y: None
+          height: dp(24)
+          color: 0.3,0.2,0.2,1
