@@ -21,6 +21,25 @@ def verifyMasterPassword(password: str) -> bool:
         storedHash = f.read()
     return bcrypt.checkpw(password.encode(), storedHash)
 
+#Recovery Helper Functions
+def loadRecovery():
+    recoveryFile = os.path.join(os.path.expanduser("~"), ".vaultRecovery.txt")
+    if os.path.exists(recoveryFile):
+        with open(recoveryFile, "r", encoding="utf-8") as f:
+            recoveryPassword = f.read().strip()
+        return recoveryPassword
+    return None
+
+def saveRecovery(recoveryPassword: str):
+    recoveryFile = os.path.join(os.path.expanduser("~"), ".vaultRecovery.txt")
+    with open(recoveryFile, "w", encoding="utf-8") as f:
+        f.write(recoveryPassword.strip())
+
+def setRecoveryEmail(email: str):
+    emailFile = os.path.join(os.path.expanduser("~"), ".vaultRecoveryEmail.txt")
+    with open(emailFile, "w", encoding="utf-8") as f:
+        f.write(email.strip())
+
 def getMasterPassword(parent=None):
     "First time set up or Login verification"
     createdRoot = False
