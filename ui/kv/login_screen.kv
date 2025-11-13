@@ -48,6 +48,10 @@
                 height: dp(44)
                 on_release: root.do_login()
 
+            Button:
+                text: "Forgot password?"
+                on_release: root.forgot_password()
+
             Label:
                 text: root.error_text
                 color: (1,0,0,1)
