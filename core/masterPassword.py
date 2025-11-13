@@ -1,3 +1,4 @@
+import json
 import os
 import ssl
 import bcrypt
@@ -5,10 +6,13 @@ import tkinter as tk
 import base64
 import time
 import smtplib
+import secrets
 from email.message import EmailMessage
 from tkinter import simpledialog, messagebox
+from typing import Tuple
 
 masterHashFile = os.path.join(os.path.expanduser("~"), ".vaultMaster.hash")
+recoveryFile = os.path.join(os.path.expanduser("~"), ".vaultRecovery.json")
 
 def createMasterPassword(password: str):
     "Create and store master password"
@@ -27,30 +31,33 @@ def verifyMasterPassword(password: str) -> bool:
     return bcrypt.checkpw(password.encode(), storedHash)
 
 #Recovery Helper Functions
-def loadRecovery():
-    recoveryFile = os.path.join(os.path.expanduser("~"), ".vaultRecovery.txt")
+def loadRecovery() -> dict:
     if os.path.exists(recoveryFile):
         with open(recoveryFile, "r", encoding="utf-8") as f:
-            recoveryPassword = f.read().strip()
-        return recoveryPassword
-    return None
+            return json.load(f)
 
-def saveRecovery(recoveryPassword: str):
-    recoveryFile = os.path.join(os.path.expanduser("~"), ".vaultRecovery.txt")
-    with open(recoveryFile, "w", encoding="utf-8") as f:
-        f.write(recoveryPassword.strip())
+def saveRecovery(obj: dict) -> None:
+    tmp = recoveryFile + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f)
+    os.replace(tmp, recoveryFile)
+    try:
+        os.chmod(recoveryFile, 0o600)
+    except Exception:
+        pass
 
 def setRecoveryEmail(email: str):
-    emailFile = os.path.join(os.path.expanduser("~"), ".vaultRecoveryEmail.txt")
-    with open(emailFile, "w", encoding="utf-8") as f:
-        f.write(email.strip())
+    obj = loadRecovery()
+    obj["email"] = email.strip()
+    obj["token_hash_b64"] = None
+    obj["token_expiry"] = None
+    obj["attempts_left"] = 3
+    saveRecovery(obj)
 
-
-
-def storeTokenHash(token: str, ttl_seconds: int = 3600):
+def storeTokenHash(token: str, ttl_seconds: int = 3600) -> None:
     token_bytes = token.encode()
     salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(token_bytes, salt)  # bytes
+    hashed = bcrypt.hashpw(token_bytes, salt)
     b64 = base64.b64encode(hashed).decode()
     obj = loadRecovery()
     obj['token_hash_b64'] = b64
@@ -58,41 +65,56 @@ def storeTokenHash(token: str, ttl_seconds: int = 3600):
     obj['attempts_left'] = 3
     saveRecovery(obj)
 
-def clearToken():
+def clearToken() -> None:
     obj = loadRecovery()
     obj.pop('token_hash_b64', None)
     obj.pop('token_expiry', None)
     obj['attempts_left'] = 3
     saveRecovery(obj)
 
-def sendRecoveryEmail(smtpConfig: dict, toEmail: str, token: str) -> None:
+def sendRecoveryEmail(smtpConfig: dict, toEmail: str, token: str, ttl_seconds: int = 3600) -> Tuple[bool, str]:
     host = smtpConfig['host']
     port = smtpConfig.get('port', 465 if smtpConfig.get('use_ssl', True) else 587)
     username = smtpConfig.get('username')
     password = smtpConfig.get('password')
     use_ssl = smtpConfig.get('use_ssl', True)
 
-    message = f"""Subject: Vault password reset token
+    expiry_minutes = int(ttl_seconds // 60)
+    subject = "Vault password reset token"
+    body = (
+        "You requested a password reset for your vault.\n\n"
+        f"Use this one-time token to reset your master password (expires in {expiry_minutes} minutes):\n\n"
+        f"{token}\n\n"
+        "If you did not request this, ignore this email.\n"
+    )
 
-You requested a password reset for your vault.
-Use this one-time token to reset your master password (expires in 1 hour):
-
-{token}
-
-If you did not request this, ignore this email.
-"""
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = username or f"no-reply@{host}"
+    msg["To"] = toEmail
+    msg.set_content(body)
+    
     if use_ssl:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(host, port, context=context) as server:
             if username and password:
                 server.login(username, password)
-            server.sendmail(username or f"no-reply@{host}", toEmail, message)
+            server.send_message(msg)
     else:
         with smtplib.SMTP(host, port) as server:
             server.starttls(context=ssl.create_default_context())
             if username and password:
                 server.login(username, password)
-            server.sendmail(username or f"no-reply@{host}", toEmail, message)
+            server.send_message(msg)
+        return True, "Email sent"
+
+def generateSendRecovery(smtpConfig: dict, toEmail: str, ttl_seconds: int = 3600) -> tuple[bool, str]:
+    token = secrets.token_urlsafe(32)
+    storeTokenHash(token, ttl_seconds=ttl_seconds)
+    ok, msg = sendRecoveryEmail(smtpConfig, toEmail, token, ttl_seconds=ttl_seconds)
+    if not ok:
+        return False, msg
+    return True, "Token generated and email queued/sent"
 
 def getMasterPassword(parent=None):
     "First time set up or Login verification"
