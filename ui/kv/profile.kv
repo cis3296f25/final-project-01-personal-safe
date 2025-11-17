@@ -1,0 +1,72 @@
+#:kivy 2.1.0
+<ProfileScreen>:
+    name: "PROFILE"
+    email: root.email
+    display_name: root.display_name
+
+    canvas.before:
+        Color:
+            rgba: 237/255, 231/255, 217/255, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+
+        HeaderBox:
+            Label:
+                text: "Profile"
+                font_size: "22sp"
+                bold: True
+
+        AnchorLayout:
+            anchor_x: "center"
+            anchor_y: "center"
+
+            BoxLayout:
+                orientation: "vertical"
+                padding: dp(16)
+                spacing: dp(12)
+                size_hint: None, None
+                width: min(dp(480), root.width * 0.95)
+                height: min(dp(360), root.height * 0.85)
+
+                BoxLayout:
+                    orientation: "vertical"
+                    spacing: dp(8)
+
+                    Label:
+                        text: "Display name"
+                        size_hint_y: None
+                        height: dp(20)
+                        color: 75/255, 66/255, 55/255, 1
+                    TextInput:
+                        id: display_input
+                        text: root.display_name
+                        multiline: False
+                        on_text: root.display_name = self.text
+
+                    Label:
+                        text: "Email"
+                        size_hint_y: None
+                        height: dp(20)
+                        color: 75/255, 66/255, 55/255, 1
+                    TextInput:
+                        id: email_input
+                        text: root.email
+                        multiline: False
+                        on_text: root.email = self.text
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(44)
+                    spacing: dp(8)
+
+                    CustomButton:
+                        text: "Save"
+                        on_release: root.save_profile()
+                    CustomButton:
+                        text: "Cancel"
+                        on_release:
+                            app.root.current = "HOME"
