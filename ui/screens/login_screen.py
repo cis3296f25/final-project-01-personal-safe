@@ -59,48 +59,67 @@ class LoginScreen(Screen):
         self.do_login()
 
     def forgot_password(self):
+        """Called by the KV button on_release: root.forgot_password()"""
+        if getattr(self, "_forgot_sending", False):
+            return
+        self._forgot_sending = True
         try:
-            rec = mp.loadRecovery()  # should return dict with "email"
+            rec = mp.loadRecovery()  #must return dict-like with 'email'
+            email = rec.get("email") if isinstance(rec, dict) else None
         except Exception as e:
-            Logger.exception("Failed loadRecovery")
-            self._show_message("Error", f"Failed to read recovery settings: {e}")
+            Logger.exception("forgot_password: loadRecovery failed")
+            self._show_popup("Error", f"Failed to read recovery settings: {e}")
+            self._forgot_sending = False
             return
 
-        email = rec.get("email") if isinstance(rec, dict) else None
         if not email:
-            self._show_message("No recovery email", "No recovery email configured. Set one in Settings.")
+            self._show_popup("No recovery email", "No recovery email configured. Go to Settings and set one.")
+            self._forgot_sending = False
             return
-        sending_popup = Popup(title="Sending...", content=Label(text=f"Sending recovery email to {email}"), size_hint=(0.7, 0.2), auto_dismiss=False)
+
+        #create popup
+        sending_popup = Popup(title="Sending...", content=Label(text=f"Sending to {email}"), size_hint=(0.7, 0.2), auto_dismiss=False)
         sending_popup.open()
-        thread = threading.Thread(target=self._send_recovery_thread, args=(email, sending_popup), daemon=True)
+
+        #smtp config from app_state if available
+        smtp_config = getattr(app_state, "smtp_config", None)
+
+        #sending in background thread
+        thread = threading.Thread(target=self._forgot_send_thread, args=(email, smtp_config, sending_popup), daemon=True)
         thread.start()
 
-    def _send_recovery_thread(self, email, popup):
-        #smtpConfig should come from secure storage / app_state. Provide one or ask user earlier.
-        smtpConfig = getattr(app_state, "smtp_config", None)
-        #If you don't have smtp_config in app_state, you can prompt the user in Settings to provide it,
-        #or pass None for testing (but mp.generate_and_send_recovery may require it).
+    def _send_recovery_thread(self, email, smtp_config, popup):
         try:
-            ok, msg = mp.generate_and_send_recovery(smtpConfig, email, ttl_seconds=3600)
+            if smtp_config is None:
+                import secrets
+                token = secrets.token_urlsafe(32)
+                mp.storeTokenHash(token, ttl_seconds=3600)
+                Clock.schedule_once(lambda dt: self._on_send_result(True, f"DEV TOKEN: {token}", popup), 0)
+                return
+
+            ok, msg = mp.generate_and_send_recovery(smtp_config, email, ttl_seconds=3600)
+            Clock.schedule_once(lambda dt: self._on_send_result(ok, msg, popup), 0)
         except Exception as e:
-            Logger.exception("generate_and_send_recovery failed")
-            ok, msg = False, f"Internal error: {e}"
-        #schedule UI update back on main Kivy thread
-        Clock.schedule_once(lambda dt: self._on_send_result(ok, msg, popup), 0)
+            Logger.exception("forgot_password: unexpected error")
+            Clock.schedule_once(lambda dt: self._on_send_result(False, f"Internal error: {e}", popup), 0)
 
     def _on_send_result(self, ok: bool, msg: str, popup: Popup):
         popup.dismiss()
+        self._forgot_sending = False
         if ok:
-            self._show_message("Recovery email sent", f"A recovery email was sent to {msg if isinstance(msg, str) else 'your email'}.")
+            if msg.startswith("DEV TOKEN:"):
+                token = msg.split("DEV TOKEN: ", 1)[-1]
+                self._show_popup("Dev token (testing only)", f"Use this token to reset: {token}")
+            else:
+                self._show_popup("Recovery email sent", f"A recovery email was sent to {msg if isinstance(msg, str) else 'your email'}.")
         else:
-            #msg should include error details from mp.sendRecoveryEmail
             self._show_message("Send failed", f"Failed to send recovery email: {msg}")
 
     def _show_message(self, title: str, message: str):
         box = BoxLayout(orientation="vertical", padding=10)
         box.add_widget(Label(text=message))
         btn = Button(text="OK", size_hint=(1, 0.25))
+        box.add_widget(btn)
         p = Popup(title=title, content=box, size_hint=(0.8, 0.4))
         btn.bind(on_release=lambda *_: p.dismiss())
-        box.add_widget(btn)
         p.open()
