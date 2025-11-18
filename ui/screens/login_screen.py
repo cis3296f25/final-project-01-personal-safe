@@ -25,14 +25,16 @@ def generate_reset_code(length=6):
 def send_reset_email(to_email, code):
     msg = EmailMessage()
     msg['Subject'] = 'Your Password Reset Code'
-    msg['From'] = 'yourapp@example.com'  # replace with your sender
+    msg['From'] = 'pswrdsafe@outlook.com'
     msg['To'] = to_email
     msg.set_content(f'Your password reset code is: {code}')
 
-    #using Gmail SMTP
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login('yourapp@example.com', 'your_app_password_or_token')
+    with smtplib.SMTP('smtp.sendgrid.net', 587) as smtp:
+        smtp.starttls()
+        smtp.login('apikey', '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')
         smtp.send_message(msg)
+        print("Email sent successfully!")
+
 
 class LoginScreen(Screen):
     error_text = StringProperty("")  # Bound to error label
@@ -141,7 +143,7 @@ class LoginScreen(Screen):
         """Handle forgot password flow: get recovery email, validate, and notify user (simulated)."""
         Logger.info("LoginScreen: forgot_password called")
 
-        profile = getattr(app_state, "profile", None) or loadprofile()
+        profile = getattr(app_state, "profile", None) or self._load_profile_file()
         if not profile:
             profile = self._load_profile_file()
 
