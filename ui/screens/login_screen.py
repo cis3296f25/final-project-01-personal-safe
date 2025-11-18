@@ -1,7 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.logger import Logger
-import threading
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
@@ -13,6 +12,27 @@ from app_state import app_state
 import os
 import json
 import re
+import random
+import smtplib
+from email.message import EmailMessage
+
+def generate_reset_code(length=6):
+    """Return a random numeric code as a string."""
+    code = ''.join(str(random.randint(0, 9)) for _ in range(length))
+    app_state.reset_code = code  # store it temporarily in app_state
+    return code
+
+def send_reset_email(to_email, code):
+    msg = EmailMessage()
+    msg['Subject'] = 'Your Password Reset Code'
+    msg['From'] = 'yourapp@example.com'  # replace with your sender
+    msg['To'] = to_email
+    msg.set_content(f'Your password reset code is: {code}')
+
+    #using Gmail SMTP
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login('yourapp@example.com', 'your_app_password_or_token')
+        smtp.send_message(msg)
 
 class LoginScreen(Screen):
     error_text = StringProperty("")  # Bound to error label
@@ -118,29 +138,10 @@ class LoginScreen(Screen):
         return {}
 
     def forgot_password(self):
-        Logger.info("LoginScreen: forgot_password called")
-
-        # 1) Check app_state.profile
-        Logger.info(f"LoginScreen: app_state.profile = {getattr(app_state, 'profile', None)!r}")
-
-        # 2) Check user_data_dir path and whether the file exists there
-        try:
-            user_dir = App.get_running_app().user_data_dir
-        except Exception:
-            user_dir = None
-        Logger.info(f"LoginScreen: app user_data_dir = {user_dir!r}")
-        # 3) Check both candidate file paths
-        candidates = []
-        if user_dir:
-            candidates.append(os.path.join(user_dir, "user_profile.json"))
-        candidates.append("user_profile.json")
-        for p in candidates:
-            Logger.info(f"LoginScreen: checking profile file: {p} -> exists={os.path.exists(p)}")
         """Handle forgot password flow: get recovery email, validate, and notify user (simulated)."""
         Logger.info("LoginScreen: forgot_password called")
 
-        # Preferred: app_state.profile (set by ProfileScreen.save_profile)
-        profile = getattr(app_state, "profile", None) or {}
+        profile = getattr(app_state, "profile", None) or loadprofile()
         if not profile:
             profile = self._load_profile_file()
 
@@ -148,7 +149,6 @@ class LoginScreen(Screen):
         if isinstance(profile, dict):
             email = profile.get("email", "") or ""
         else:
-            # defensive: if app_state.profile is a string or other, safely coerce
             try:
                 email = str(profile)
             except Exception:
@@ -169,9 +169,10 @@ class LoginScreen(Screen):
             )
             return
 
-        # Simulate sending recovery email (replace with real email-sending logic if available)
-        Logger.info(f"LoginScreen: sending recovery (simulated) to {email}")
-        self._show_popup(
-            "Recovery sent",
-            f"A recovery link has been sent to {email} (simulated)."
-        )
+        code = generate_reset_code()
+        try:
+            send_reset_email(email, code)
+            self._show_popup("Code Sent", f"A verification code was sent to {email}")
+            self.manager.current = "VERIFY_CODE"
+        except Exception as e:
+            self._show_popup("Error", f"Failed to send email: {e}")
