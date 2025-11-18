@@ -24,6 +24,8 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     `cd dist`
     Run the executable file:
     `.\main.exe`
+    If it returns a black screen:
+    `cd ..` then `python main.py`
     * Mac/Linux  
     Allow the executable to run:  
     `chmod +x ./dist/main`  

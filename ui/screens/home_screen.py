@@ -104,3 +104,14 @@ class HomeScreen(Screen):
     def goto_delete(self):
         if "DELETE" in self.manager.screen_names:
             self.manager.current = "DELETE"
+
+    def goto_profile(self):
+        Logger.info("HomeScreen: goto_profile called")
+        if not self.manager:
+            Logger.error("HomeScreen: no manager! Cannot switch screens")
+            return
+        Logger.info(f"HomeScreen: manager screens = {self.manager.screen_names}")
+        if "PROFILE" in self.manager.screen_names:
+            self.manager.current = "PROFILE"
+        else:
+            Logger.error("HomeScreen: PROFILE screen not found")

@@ -16,6 +16,8 @@ def _load_kv_if_exists():
         "ui/kv/home.kv",
         "ui/kv/dialogs.kv",
         "kivy_ui.kv",
+        "ui/kv/profile.kv",
+        "ui/kv/verify_code_screen.kv",
     ):
         p = Path(kv)
         if p.exists():
@@ -30,8 +32,10 @@ from ui.screens.home_screen import HomeScreen
 from ui.screens.add_password_screen import AddPasswordScreen
 from ui.screens.edit_password_screen import EditPasswordScreen
 from ui.screens.delete_password_screen import DeletePasswordScreen
+from ui.screens.profile_screen import ProfileScreen
+from ui.screens.verify_code_screen import VerifyCodeScreen
+from ui.screens.reset_password_screen import ResetPasswordScreen
 from core import masterPassword as mp
-
 
 class PersonalSafeApp(App):
     title = "Personal Safe"
@@ -48,6 +52,10 @@ class PersonalSafeApp(App):
         sm.add_widget(AddPasswordScreen(name="ADD"))
         sm.add_widget(EditPasswordScreen(name="EDIT"))
         sm.add_widget(DeletePasswordScreen(name="DELETE"))
+        sm.add_widget(ProfileScreen(name="PROFILE"))
+        sm.add_widget(VerifyCodeScreen(name="VERIFY_CODE"))
+        sm.add_widget(ResetPasswordScreen(name="RESET_PASSWORD"))
+
         sm.app = self
         self.sm = sm
         # Route based on existence of master hash

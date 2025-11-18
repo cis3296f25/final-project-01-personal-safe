@@ -48,6 +48,13 @@
                 height: dp(44)
                 on_release: root.do_login()
 
+            CustomButton:
+                id: forgot_btn
+                text: "Forgot password?"
+                size_hint_y: None
+                height: dp(44)
+                on_release: root.forgot_password()
+
             Label:
                 text: root.error_text
                 color: (1,0,0,1)

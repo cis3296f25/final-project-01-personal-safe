@@ -1,0 +1,25 @@
+#:kivy 2.1.0
+<VerifyCodeScreen>:
+    name: "VERIFY_CODE"
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+
+        Label:
+            text: "Enter the code sent to your email"
+            size_hint_y: None
+            height: dp(30)
+
+        TextInput:
+            id: code_input
+            multiline: False
+            size_hint_y: None
+            height: dp(40)
+            on_text_validate: root.verify_code(self.text)
+
+        CustomButton:
+            text: "Submit"
+            size_hint_y: None
+            height: dp(40)
+            on_release: root.verify_code(code_input.text)

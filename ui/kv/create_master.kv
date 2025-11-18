@@ -102,3 +102,34 @@
                         size_hint_x: None
                         width: dp(120)
                         on_release: root.do_create()
+
+<RecoveryEmailPopup@Popup>:
+    title: "Recovery email"
+    size_hint: .85, .4
+    auto_dismiss: False
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(12)
+        spacing: dp(8)
+
+        TextInput:
+            id: email_input
+            hint_text: "Recovery email"
+            text: root.email if hasattr(root, "email") else ""
+            multiline: False
+            write_tab: False
+
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            spacing: dp(8)
+
+            Button:
+                text: "Save"
+                on_release:
+                    app.root.current_screen.saveRecoveryEmail(email_input.text)
+                    root.dismiss()
+
+            Button:
+                text: "Cancel"
+                on_release: root.dismiss()
