@@ -19,23 +19,33 @@ import random
 import smtplib
 from email.message import EmailMessage
 import threading
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def generate_reset_code(length=6):
     """Return a random numeric code as a string."""
-    code = ''.join(str(random.randint(0, 9)) for _ in range(length))
-    app_state.reset_code = code  #store it temporarily in app_state
+    code = "".join(str(random.randint(0, 9)) for _ in range(length))
+    app_state.reset_code = code  # store it temporarily in app_state
     return code
+
 
 def send_reset_email(to_email, code):
     msg = EmailMessage()
-    msg['Subject'] = 'Your Password Reset Code'
-    msg['From'] = 'pswrdsafe@outlook.com'
-    msg['To'] = to_email
-    msg.set_content(f'Your password reset code is: {code}')
+    msg["Subject"] = "Your Password Reset Code"
+    msg["From"] = "pswrdsafe@outlook.com"
+    msg["To"] = to_email
+    msg.set_content(f"Your password reset code is: {code}")
 
-    with smtplib.SMTP('smtp.sendgrid.net', 587) as smtp:
+    api_key = os.getenv("SMTP_APIKEY")
+
+    with smtplib.SMTP("smtp.sendgrid.net", 587) as smtp:
         smtp.starttls()
-        smtp.login('apikey', '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')
+        smtp.login(
+            "apikey",
+            api_key,
+        )
         smtp.send_message(msg)
         print("Email sent successfully!")
 
@@ -84,16 +94,24 @@ class LoginScreen(Screen):
         try:
             if smtp_config is None:
                 import secrets
+
                 token = secrets.token_urlsafe(32)
                 mp.storeTokenHash(token, ttl_seconds=3600)
-                Clock.schedule_once(lambda dt: self._on_send_result(True, f"DEV TOKEN: {token}", popup), 0)
+                Clock.schedule_once(
+                    lambda dt: self._on_send_result(True, f"DEV TOKEN: {token}", popup),
+                    0,
+                )
                 return
 
-            ok, msg = mp.generate_and_send_recovery(smtp_config, email, ttl_seconds=3600)
+            ok, msg = mp.generate_and_send_recovery(
+                smtp_config, email, ttl_seconds=3600
+            )
             Clock.schedule_once(lambda dt: self._on_send_result(ok, msg, popup), 0)
         except Exception as e:
             Logger.exception("forgot_password: unexpected error")
-            Clock.schedule_once(lambda dt: self._on_send_result(False, f"Internal error: {e}", popup), 0)
+            Clock.schedule_once(
+                lambda dt: self._on_send_result(False, f"Internal error: {e}", popup), 0
+            )
 
     def _on_send_result(self, ok: bool, msg: str, popup: Popup):
         popup.dismiss()
@@ -101,9 +119,14 @@ class LoginScreen(Screen):
         if ok:
             if msg.startswith("DEV TOKEN:"):
                 token = msg.split("DEV TOKEN: ", 1)[-1]
-                self._show_popup("Dev token (testing only)", f"Use this token to reset: {token}")
+                self._show_popup(
+                    "Dev token (testing only)", f"Use this token to reset: {token}"
+                )
             else:
-                self._show_popup("Recovery email sent", f"A recovery email was sent to {msg if isinstance(msg, str) else 'your email'}.")
+                self._show_popup(
+                    "Recovery email sent",
+                    f"A recovery email was sent to {msg if isinstance(msg, str) else 'your email'}.",
+                )
         else:
             self._show_popup("Send failed", f"Failed to send recovery email: {msg}")
 
@@ -112,7 +135,9 @@ class LoginScreen(Screen):
         content.add_widget(Label(text=message))
         btn = Button(text="OK", size_hint_y=None, height="40dp")
         content.add_widget(btn)
-        popup = Popup(title=title, content=content, size_hint=(None, None), size=(420, 220))
+        popup = Popup(
+            title=title, content=content, size_hint=(None, None), size=(420, 220)
+        )
         btn.bind(on_release=popup.dismiss)
         popup.open()
 
@@ -153,14 +178,16 @@ class LoginScreen(Screen):
                 email = ""
         if not email:
             self._show_popup(
-            "No recovery email",
-            "No recovery email configured. Go to Profile and set one.")
+                "No recovery email",
+                "No recovery email configured. Go to Profile and set one.",
+            )
             return
 
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             self._show_popup(
                 "Invalid email",
-                "The configured recovery email looks invalid. Please update it in Profile.")
+                "The configured recovery email looks invalid. Please update it in Profile.",
+            )
             return
 
         code = generate_reset_code()
@@ -175,7 +202,7 @@ class LoginScreen(Screen):
             except Exception as e:
                 Logger.exception("Failed to send email in background")
                 err = e
-            #user notification on the main thread
+            # user notification on the main thread
             Clock.schedule_once(lambda dt: self._notify_send_result(err, email), 0)
 
         t = threading.Thread(target=_thread_send, daemon=True)
@@ -184,14 +211,12 @@ class LoginScreen(Screen):
     def _notify_send_result(self, err, email):
         if err is None:
             self._show_popup(
-                "Recovery email sent",
-                f"A recovery email was sent to {email}."
+                "Recovery email sent", f"A recovery email was sent to {email}."
             )
             if self.manager and "VERIFY_CODE" in self.manager.screen_names:
-                Clock.schedule_once(lambda dt: setattr(self.manager, "current", "VERIFY_CODE"), 0)
-    
+                Clock.schedule_once(
+                    lambda dt: setattr(self.manager, "current", "VERIFY_CODE"), 0
+                )
+
         else:
-            self._show_popup(
-                "Send failed",
-                f"Failed to send recovery email: {err}"
-            )
+            self._show_popup("Send failed", f"Failed to send recovery email: {err}")
