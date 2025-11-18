@@ -11,7 +11,8 @@ from core.vault import Vault
 from core import masterPassword as mp
 from app_state import app_state
 import os
-
+import json
+import re
 
 class LoginScreen(Screen):
     error_text = StringProperty("")  # Bound to error label
