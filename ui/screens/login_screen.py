@@ -1,3 +1,6 @@
+import code
+import email
+import profile
 from kivy.uix.screenmanager import Screen
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.logger import Logger
@@ -15,11 +18,12 @@ import re
 import random
 import smtplib
 from email.message import EmailMessage
+import threading
 
 def generate_reset_code(length=6):
     """Return a random numeric code as a string."""
     code = ''.join(str(random.randint(0, 9)) for _ in range(length))
-    app_state.reset_code = code  # store it temporarily in app_state
+    app_state.reset_code = code  #store it temporarily in app_state
     return code
 
 def send_reset_email(to_email, code):
@@ -42,12 +46,6 @@ class LoginScreen(Screen):
 
     def on_pre_enter(self, *args):
         # Reset UI state
-        self.error_text = ""
-        if self.pwd_field:
-            self.pwd_field.text = ""
-        Logger.info("LoginScreen: ready")
-
-    def on_pre_enter(self, *args):
         self.error_text = ""
         if self.pwd_field:
             self.pwd_field.text = ""
@@ -140,13 +138,11 @@ class LoginScreen(Screen):
         return {}
 
     def forgot_password(self):
-        """Handle forgot password flow: get recovery email, validate, and notify user (simulated)."""
         Logger.info("LoginScreen: forgot_password called")
 
         profile = getattr(app_state, "profile", None) or self._load_profile_file()
         if not profile:
             profile = self._load_profile_file()
-
         email = ""
         if isinstance(profile, dict):
             email = profile.get("email", "") or ""
@@ -155,26 +151,47 @@ class LoginScreen(Screen):
                 email = str(profile)
             except Exception:
                 email = ""
-
         if not email:
             self._show_popup(
-                "No recovery email",
-                "No recovery email configured. Go to Profile and set one."
-            )
+            "No recovery email",
+            "No recovery email configured. Go to Profile and set one.")
             return
 
-        # Basic validation
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             self._show_popup(
                 "Invalid email",
-                "The configured recovery email looks invalid. Please update it in Profile."
-            )
+                "The configured recovery email looks invalid. Please update it in Profile.")
             return
 
         code = generate_reset_code()
-        try:
-            send_reset_email(email, code)
-            self._show_popup("Code Sent", f"A verification code was sent to {email}")
-            self.manager.current = "VERIFY_CODE"
-        except Exception as e:
-            self._show_popup("Error", f"Failed to send email: {e}")
+        app_state.reset_code = code
+        Logger.info("LoginScreen: generated reset code (stored in app_state)")
+
+        def _thread_send():
+            err = None
+            try:
+                send_reset_email(email, code)
+                Logger.info("LoginScreen: reset email sent in background")
+            except Exception as e:
+                Logger.exception("Failed to send email in background")
+                err = e
+            #user notification on the main thread
+            Clock.schedule_once(lambda dt: self._notify_send_result(err, email), 0)
+
+        t = threading.Thread(target=_thread_send, daemon=True)
+        t.start()
+
+    def _notify_send_result(self, err, email):
+        if err is None:
+            self._show_popup(
+                "Recovery email sent",
+                f"A recovery email was sent to {email}."
+            )
+            if self.manager and "VERIFY_CODE" in self.manager.screen_names:
+                Clock.schedule_once(lambda dt: setattr(self.manager, "current", "VERIFY_CODE"), 0)
+    
+        else:
+            self._show_popup(
+                "Send failed",
+                f"Failed to send recovery email: {err}"
+            )

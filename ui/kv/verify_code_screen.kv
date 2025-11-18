@@ -1,5 +1,6 @@
 #:kivy 2.1.0
 <VerifyCodeScreen>:
+    name: "VERIFY_CODE"
     BoxLayout:
         orientation: "vertical"
         padding: dp(16)
@@ -15,6 +16,7 @@
             multiline: False
             size_hint_y: None
             height: dp(40)
+            on_text_validate: root.verify_code(self.text)
 
         CustomButton:
             text: "Submit"

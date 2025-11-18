@@ -17,6 +17,7 @@ def _load_kv_if_exists():
         "ui/kv/dialogs.kv",
         "kivy_ui.kv",
         "ui/kv/profile.kv",
+        "ui/kv/verify_code_screen.kv",
     ):
         p = Path(kv)
         if p.exists():
