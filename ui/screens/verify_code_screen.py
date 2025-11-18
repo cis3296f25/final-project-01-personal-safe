@@ -4,6 +4,8 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from app_state import app_state
+from core.vault import Vault
+from core import masterPassword as mp
 
 class VerifyCodeScreen(Screen):
     def verify_code(self, code_input):
@@ -40,12 +42,11 @@ class VerifyCodeScreen(Screen):
     def _login_vault(self, popup):
         popup.dismiss()
         try:
-            # Unlock vault here (adjust to your vault implementation)
-            app_state.vault.load_default()
-            self.manager.current = "HOME"
-            self._show_popup("Logged In", "Vault unlocked successfully!")
+            if "HOME" in self.manager.screen_names:
+                self.manager.current = "HOME"
         except Exception as e:
-            self._show_popup("Error", f"Failed to unlock vault: {e}")
+            Logger.exception("Login error")
+            self.error_text = f"Error: {e}"
 
     def _show_popup(self, title, message):
         content = BoxLayout(orientation="vertical", padding=12, spacing=12)
