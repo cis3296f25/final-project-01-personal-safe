@@ -10,6 +10,7 @@ from kivy.uix.button import Button
 from core.vault import Vault
 from core import masterPassword as mp
 from app_state import app_state
+import os
 
 
 class LoginScreen(Screen):
@@ -58,36 +59,6 @@ class LoginScreen(Screen):
     def on_submit(self):
         self.do_login()
 
-    def forgot_password(self):
-        """Called by the KV button on_release: root.forgot_password()"""
-        if getattr(self, "_forgot_sending", False):
-            return
-        self._forgot_sending = True
-        try:
-            rec = mp.loadRecovery()  #must return dict-like with 'email'
-            email = rec.get("email") if isinstance(rec, dict) else None
-        except Exception as e:
-            Logger.exception("forgot_password: loadRecovery failed")
-            self._show_popup("Error", f"Failed to read recovery settings: {e}")
-            self._forgot_sending = False
-            return
-
-        if not email:
-            self._show_popup("No recovery email", "No recovery email configured. Go to Settings and set one.")
-            self._forgot_sending = False
-            return
-
-        #create popup
-        sending_popup = Popup(title="Sending...", content=Label(text=f"Sending to {email}"), size_hint=(0.7, 0.2), auto_dismiss=False)
-        sending_popup.open()
-
-        #smtp config from app_state if available
-        smtp_config = getattr(app_state, "smtp_config", None)
-
-        #sending in background thread
-        thread = threading.Thread(target=self._forgot_send_thread, args=(email, smtp_config, sending_popup), daemon=True)
-        thread.start()
-
     def _send_recovery_thread(self, email, smtp_config, popup):
         try:
             if smtp_config is None:
@@ -113,13 +84,93 @@ class LoginScreen(Screen):
             else:
                 self._show_popup("Recovery email sent", f"A recovery email was sent to {msg if isinstance(msg, str) else 'your email'}.")
         else:
-            self._show_message("Send failed", f"Failed to send recovery email: {msg}")
+            self._show_popup("Send failed", f"Failed to send recovery email: {msg}")
 
-    def _show_message(self, title: str, message: str):
-        box = BoxLayout(orientation="vertical", padding=10)
-        box.add_widget(Label(text=message))
-        btn = Button(text="OK", size_hint=(1, 0.25))
-        box.add_widget(btn)
-        p = Popup(title=title, content=box, size_hint=(0.8, 0.4))
-        btn.bind(on_release=lambda *_: p.dismiss())
-        p.open()
+    def _show_popup(self, title: str, message: str):
+        content = BoxLayout(orientation="vertical", padding=12, spacing=12)
+        content.add_widget(Label(text=message))
+        btn = Button(text="OK", size_hint_y=None, height="40dp")
+        content.add_widget(btn)
+        popup = Popup(title=title, content=content, size_hint=(None, None), size=(420, 220))
+        btn.bind(on_release=popup.dismiss)
+        popup.open()
+
+    def _load_profile_file(self) -> dict:
+        """Try to load profile JSON from app user_data_dir then fallback to local file."""
+        try:
+            user_dir = App.get_running_app().user_data_dir
+        except Exception:
+            user_dir = None
+
+        candidates = []
+        if user_dir:
+            candidates.append(os.path.join(user_dir, "user_profile.json"))
+        candidates.append("user_profile.json")
+
+        for p in candidates:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        return json.load(f) or {}
+                except Exception:
+                    Logger.exception(f"Failed to read profile file: {p}")
+        return {}
+
+    def forgot_password(self):
+        Logger.info("LoginScreen: forgot_password called")
+
+        # 1) Check app_state.profile
+        Logger.info(f"LoginScreen: app_state.profile = {getattr(app_state, 'profile', None)!r}")
+
+        # 2) Check user_data_dir path and whether the file exists there
+        try:
+            user_dir = App.get_running_app().user_data_dir
+        except Exception:
+            user_dir = None
+        Logger.info(f"LoginScreen: app user_data_dir = {user_dir!r}")
+        # 3) Check both candidate file paths
+        candidates = []
+        if user_dir:
+            candidates.append(os.path.join(user_dir, "user_profile.json"))
+        candidates.append("user_profile.json")
+        for p in candidates:
+            Logger.info(f"LoginScreen: checking profile file: {p} -> exists={os.path.exists(p)}")
+        """Handle forgot password flow: get recovery email, validate, and notify user (simulated)."""
+        Logger.info("LoginScreen: forgot_password called")
+
+        # Preferred: app_state.profile (set by ProfileScreen.save_profile)
+        profile = getattr(app_state, "profile", None) or {}
+        if not profile:
+            profile = self._load_profile_file()
+
+        email = ""
+        if isinstance(profile, dict):
+            email = profile.get("email", "") or ""
+        else:
+            # defensive: if app_state.profile is a string or other, safely coerce
+            try:
+                email = str(profile)
+            except Exception:
+                email = ""
+
+        if not email:
+            self._show_popup(
+                "No recovery email",
+                "No recovery email configured. Go to Profile and set one."
+            )
+            return
+
+        # Basic validation
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            self._show_popup(
+                "Invalid email",
+                "The configured recovery email looks invalid. Please update it in Profile."
+            )
+            return
+
+        # Simulate sending recovery email (replace with real email-sending logic if available)
+        Logger.info(f"LoginScreen: sending recovery (simulated) to {email}")
+        self._show_popup(
+            "Recovery sent",
+            f"A recovery link has been sent to {email} (simulated)."
+        )
