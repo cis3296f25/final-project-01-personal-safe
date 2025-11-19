@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 from . import storage
+from core import backup as backup_mod  # adjust import path
 
 
 class Vault:
@@ -35,3 +36,48 @@ class Vault:
 
     def get(self, site):
         return self._data.get(site)
+
+    def export_encrypted_backup(self, filepath: str, master_password: str) -> None:
+        """
+        Export the entire vault (self._data) to an encrypted backup file.
+        `master_password` must be provided (it is not read from disk here).
+        """
+        if self._data is None:
+            raise ValueError("Vault has no data to export")
+        if not master_password:
+            raise ValueError("Master password required for export")
+        
+        # Convert items in vault to dict for JSON
+        data_to_backup = {site: pwd for site, pwd in self.items()}
+        
+        # Choose what to export
+        obj = {"entries": data_to_backup}
+        backup_mod.save_encrypted_backup_file(obj, master_password, filepath)
+
+    def import_encrypted_backup(self, filepath: str, master_password: str, replace_existing: bool = True) -> None:
+        """
+        Import an encrypted backup from `filepath`, decrypting with `master_password`.
+        If replace_existing is True, the vault's internal data will be replaced by backup entries.
+        Otherwise, backup entries will be merged (backup wins on key collisions).
+        """
+        if not master_password:
+            raise ValueError("Master password required for import")
+        data = backup_mod.load_encrypted_backup_file(filepath, master_password)
+        if not isinstance(data, dict) or "entries" not in data:
+            raise ValueError("Backup file missing entries")
+        entries = data["entries"] or {}
+        if not isinstance(entries, dict):
+            raise ValueError("Backup entries malformed")
+
+        if replace_existing:
+            self._data = dict(entries)
+        else:
+            # merge, backup entries win
+            self._data = {**(self._data or {}), **entries}
+
+        try:
+            if hasattr(self, "save_to_disk"):
+                self.save_to_disk()
+        except Exception:
+            # swallow; caller will handle state if needed
+            pass

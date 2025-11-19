@@ -35,6 +35,8 @@ from ui.screens.delete_password_screen import DeletePasswordScreen
 from ui.screens.profile_screen import ProfileScreen
 from ui.screens.verify_code_screen import VerifyCodeScreen
 from ui.screens.reset_password_screen import ResetPasswordScreen
+from ui.screens.backup_export_screen import BackupExportScreen
+from ui.screens.backup_import_screen import BackupImportScreen
 from core import masterPassword as mp
 
 class PersonalSafeApp(App):
@@ -55,6 +57,8 @@ class PersonalSafeApp(App):
         sm.add_widget(ProfileScreen(name="PROFILE"))
         sm.add_widget(VerifyCodeScreen(name="VERIFY_CODE"))
         sm.add_widget(ResetPasswordScreen(name="RESET_PASSWORD"))
+        sm.add_widget(BackupExportScreen(name="BACKUP_EXPORT"))
+        sm.add_widget(BackupImportScreen(name="BACKUP_IMPORT"))
 
         sm.app = self
         self.sm = sm

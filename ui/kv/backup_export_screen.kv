@@ -1,0 +1,25 @@
+
+<BackupExportScreen>:
+    path_field: path_input
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        Label:
+            text: "Export Encrypted Backup"
+            size_hint_y: None
+            height: "30dp"
+        TextInput:
+            id: path_input
+            hint_text: "Enter filepath (e.g. vault_backup.psafe)"
+            multiline: False
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            spacing: 8
+            Button:
+                text: "Export"
+                on_release: root.do_export()
+            Button:
+                text: "Cancel"
+                on_release: root.goto_home()

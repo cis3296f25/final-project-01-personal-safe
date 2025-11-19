@@ -1,0 +1,25 @@
+
+<BackupImportScreen>:
+    path_field: path_input
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        Label:
+            text: "Import Encrypted Backup"
+            size_hint_y: None
+            height: "30dp"
+        TextInput:
+            id: path_input
+            hint_text: "Enter backup filepath"
+            multiline: False
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            spacing: 8
+            Button:
+                text: "Import"
+                on_release: root.do_import()
+            Button:
+                text: "Cancel"
+                on_release: root.goto_home()

@@ -115,3 +115,11 @@ class HomeScreen(Screen):
             self.manager.current = "PROFILE"
         else:
             Logger.error("HomeScreen: PROFILE screen not found")
+
+    def goto_backup_export(self):
+        if "BACKUP_EXPORT" in self.manager.screen_names:
+            self.manager.current = "BACKUP_EXPORT"
+            
+    def goto_backup_import(self):
+        if "BACKUP_IMPORT" in self.manager.screen_names:
+            self.manager.current = "BACKUP_IMPORT"
