@@ -68,3 +68,14 @@
 					CustomButton:
 						text: "Profile"
 						on_release: root.goto_profile()
+
+				BoxLayout:
+					size_hint_y: None
+					height: dp(44)
+					spacing: dp(8)
+					CustomButton:
+						text: "Export Backup"
+						on_release: root.goto_backup_export()
+					CustomButton:
+						text: "Import Backup"
+						on_release: root.goto_backup_import()
