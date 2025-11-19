@@ -15,7 +15,7 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     * Mac/Linux  
     `source venv/bin/activate`
 4. Install Dependencies  
-`pip install -r requirements.txt`
+`pip install cryptography pyinstaller kivy bcrypt dotenv`
 5. Build the application  
 `pyinstaller --onefile --windowed main.py`
 6. Run Personal Safe
