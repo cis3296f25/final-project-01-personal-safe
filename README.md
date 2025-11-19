@@ -16,9 +16,10 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     `source venv/bin/activate`
 4. Install Dependencies  
 `pip install cryptography pyinstaller kivy bcrypt dotenv`
-5. Build the application  
+5. Create a `.env` file in the root directory following the format of `.env.sample` and fill in the required values
+6. Build the application  
 `pyinstaller --onefile --windowed main.py`
-6. Run Personal Safe
+7. Run Personal Safe
     * Windows 
     Navigate to dist directory: 
     `cd dist`
@@ -31,7 +32,7 @@ Ensure Python 3.13.5 is installed. You can check by running: python3 --version
     `chmod +x ./dist/main`  
     Run the executable:  
     `./dist/main` 
-7. To deactivate virtual environment:
+8. To deactivate virtual environment:
     `deactivate`
 
 # How to contribute
