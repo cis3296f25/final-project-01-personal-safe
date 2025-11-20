@@ -72,50 +72,6 @@ def clearToken() -> None:
     obj['attempts_left'] = 3
     saveRecovery(obj)
 
-def sendRecoveryEmail(smtpConfig: dict, toEmail: str, token: str, ttl_seconds: int = 3600) -> Tuple[bool, str]:
-    host = smtpConfig['host']
-    port = smtpConfig.get('port', 465 if smtpConfig.get('use_ssl', True) else 587)
-    username = smtpConfig.get('username')
-    password = smtpConfig.get('password')
-    use_ssl = smtpConfig.get('use_ssl', True)
-
-    expiry_minutes = int(ttl_seconds // 60)
-    subject = "Vault password reset token"
-    body = (
-        "You requested a password reset for your vault.\n\n"
-        f"Use this one-time token to reset your master password (expires in {expiry_minutes} minutes):\n\n"
-        f"{token}\n\n"
-        "If you did not request this, ignore this email.\n"
-    )
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = username or f"no-reply@{host}"
-    msg["To"] = toEmail
-    msg.set_content(body)
-    
-    if use_ssl:
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(host, port, context=context) as server:
-            if username and password:
-                server.login(username, password)
-            server.send_message(msg)
-    else:
-        with smtplib.SMTP(host, port) as server:
-            server.starttls(context=ssl.create_default_context())
-            if username and password:
-                server.login(username, password)
-            server.send_message(msg)
-        return True, "Email sent"
-
-def generateSendRecovery(smtpConfig: dict, toEmail: str, ttl_seconds: int = 3600) -> tuple[bool, str]:
-    token = secrets.token_urlsafe(32)
-    storeTokenHash(token, ttl_seconds=ttl_seconds)
-    ok, msg = sendRecoveryEmail(smtpConfig, toEmail, token, ttl_seconds=ttl_seconds)
-    if not ok:
-        return False, msg
-    return True, "Token generated and email queued/sent"
-
 def getMasterPassword(parent=None):
     "First time set up or Login verification"
     createdRoot = False
