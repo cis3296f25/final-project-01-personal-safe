@@ -48,11 +48,17 @@ def saveRecovery(obj: dict) -> None:
 
 def setRecoveryEmail(email: str):
     obj = loadRecovery()
+    if obj is None:
+        obj = {}  #create new dict if nothing exists
+    obj["email"] = email.strip()
+    saveRecovery(obj)
+    '''
+    obj = loadRecovery()
     obj["email"] = email.strip()
     obj["token_hash_b64"] = None
     obj["token_expiry"] = None
     obj["attempts_left"] = 3
-    saveRecovery(obj)
+    saveRecovery(obj)'''
 
 def storeTokenHash(token: str, ttl_seconds: int = 3600) -> None:
     token_bytes = token.encode()

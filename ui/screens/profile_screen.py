@@ -5,6 +5,7 @@ from kivy.properties import StringProperty
 from kivy.logger import Logger
 from kivy.app import App
 from app_state import app_state
+from core import masterPassword as mp
 
 PROFILE_FILE = "user_profile.json"
 
@@ -47,8 +48,11 @@ class ProfileScreen(Screen):
         except Exception:
             pass
 
-        save_profile_to_disk(profile)
-        Logger.info(f"Profile saved: {profile}")
+        try:
+            mp.setRecoveryEmail(self.email)
+            Logger.info(f"Recovery email updated in master password: {self.email}")
+        except Exception:
+            Logger.exception("Failed to update recovery email in master password")
 
         if "HOME" in self.manager.screen_names:
             self.manager.current = "HOME"

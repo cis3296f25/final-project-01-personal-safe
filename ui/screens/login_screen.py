@@ -161,6 +161,19 @@ class LoginScreen(Screen):
                 except Exception:
                     Logger.exception(f"Failed to read profile file: {p}")
         return {}
+    def _get_recovery_email(self) -> str:
+        try:
+            mp_obj = mp.loadRecovery()
+            if mp_obj and "email" in mp_obj:
+                return mp_obj["email"] or ""
+        except Exception:
+            Logger.exception("Failed to load recovery email from master password")
+    
+    #fallback to profile JSON
+        profile = getattr(app_state, "profile", None) or self._load_profile_file()
+        if isinstance(profile, dict):
+            return profile.get("email", "") or ""
+        return ""
 
     def forgot_password(self):
         Logger.info("LoginScreen: forgot_password called")
@@ -168,14 +181,7 @@ class LoginScreen(Screen):
         profile = getattr(app_state, "profile", None) or self._load_profile_file()
         if not profile:
             profile = self._load_profile_file()
-        email = ""
-        if isinstance(profile, dict):
-            email = profile.get("email", "") or ""
-        else:
-            try:
-                email = str(profile)
-            except Exception:
-                email = ""
+        email = self._get_recovery_email()
         if not email:
             self._show_popup(
                 "No recovery email",
