@@ -23,6 +23,7 @@ def save_profile_to_disk(profile_dict):
     try:
         with open(PROFILE_FILE, "w", encoding="utf-8") as f:
             json.dump(profile_dict, f)
+        Logger.info(f"Profile saved to {PROFILE_FILE}")
     except Exception as e:
         Logger.exception("Failed saving profile")
 
@@ -47,7 +48,8 @@ class ProfileScreen(Screen):
             app_state.profile = profile
         except Exception:
             pass
-
+        save_profile_to_disk(profile)
+        Logger.info(f"Profile saved: {profile}")
         try:
             mp.setRecoveryEmail(self.email)
             Logger.info(f"Recovery email updated in master password: {self.email}")

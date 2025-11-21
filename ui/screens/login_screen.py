@@ -20,9 +20,9 @@ import smtplib
 from email.message import EmailMessage
 import threading
 from dotenv import load_dotenv
+from ui.screens.profile_screen import load_profile
 
 load_dotenv()
-
 
 def generate_reset_code(length=6):
     """Return a random numeric code as a string."""
@@ -78,9 +78,18 @@ class LoginScreen(Screen):
             # Initialize vault with current password
             app_state.vault = Vault(pwd)
             app_state.master_password = pwd
-
             Logger.info("Login: authenticated; vault initialized")
-            # If a home screen exists, navigate there; otherwise stay
+            #Load profile
+            if not getattr(app_state, "profile", None):
+                app_state.profile = load_profile()
+            if self.manager and "HOME" in self.manager.screen_names:
+                try:
+                    home = self.manager.get_screen("HOME")
+                    home.refresh_entries()
+                except Exception:
+                    Logger.exception("Failed to refresh Home screen after login")
+
+            #If a home screen exists, navigate there; otherwise stay
             if "HOME" in self.manager.screen_names:
                 self.manager.current = "HOME"
         except Exception as e:

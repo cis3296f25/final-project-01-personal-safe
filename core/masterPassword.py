@@ -1,6 +1,7 @@
 import json
 import os
 import ssl
+import app_state
 import bcrypt
 import tkinter as tk
 import base64
@@ -84,6 +85,16 @@ def getMasterPassword(parent=None):
     if parent is None:
         parent = tk.Tk()
         createdRoot = True
+    
+    if email:
+        setRecoveryEmail(email)
+        #Update profile file and app_state
+        from ui.screens.profile_screen import save_profile_to_disk
+        from app_state import app_state
+        profile = {"email": email, "display_name": ""}
+        app_state.profile = profile
+        save_profile_to_disk(profile)
+
     try:
         if not os.path.exists(masterHashFile):
             while True:
@@ -129,7 +140,7 @@ def getMasterPassword(parent=None):
                 
             messagebox.showerror("Access Denied", "incorrect password", parent=parent)
             return None
-        
+
     finally:
         if createdRoot:
             parent.destroy()
