@@ -50,7 +50,12 @@ class VerifyCodeScreen(Screen):
         try:
             #loadprofile
             app_state.profile = load_profile() or {}
-            Logger.info(f"VerifyCodeScreen: Loaded profile -> {app_state.profile}")    
+            Logger.info(f"VerifyCodeScreen: Loaded profile -> {app_state.profile}")
+            
+            if not getattr(app_state, "vault", None) and getattr(app_state, "master_password", None):
+                from core.vault import Vault
+                app_state.vault = Vault(app_state.master_password)
+
             if self.manager and "HOME" in self.manager.screen_names:
                 home = self.manager.get_screen("HOME")
                 home.refresh_entries()
