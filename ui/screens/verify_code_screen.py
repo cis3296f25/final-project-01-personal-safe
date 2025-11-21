@@ -18,6 +18,9 @@ class VerifyCodeScreen(Screen):
         else:
             self._show_popup("Invalid Code", "The code you entered is incorrect.")
 
+#THE VAULT DOESN'T OPEN WITHOUT A MASTER PASSWORD BEING INPUT
+#BECAUSE THE MASTER PASSWORD IS NEEDED TO DECRYPT THE VAULT
+#CHANGE THE CODE HERE ONCE RESET PASSWORD IS IMPLEMENTED
     def _ask_reset_password(self):
         """Popup asking user if they want to reset their password"""
         content = BoxLayout(orientation="vertical", padding=12, spacing=12)
@@ -41,17 +44,13 @@ class VerifyCodeScreen(Screen):
         popup.dismiss()
         self.manager.current = "RESET_PASSWORD"
 
+#DELETE THIS METHOD ONCE RESET PASSWORD IS IMPLEMENTED
     def _login_vault(self, popup):
         popup.dismiss()
         try:
             #loadprofile
             app_state.profile = load_profile() or {}
-            Logger.info(f"VerifyCodeScreen: Loaded profile -> {app_state.profile}")
-            
-            if not getattr(app_state, "vault", None) and getattr(app_state, "master_password", None):
-                from core.vault import Vault
-                app_state.vault = Vault(app_state.master_password)
-
+            Logger.info(f"VerifyCodeScreen: Loaded profile -> {app_state.profile}")    
             if self.manager and "HOME" in self.manager.screen_names:
                 home = self.manager.get_screen("HOME")
                 home.refresh_entries()

@@ -27,9 +27,9 @@ class HomeScreen(Screen):
         try:
             self.entries = app_state.vault.items()
             if not self.entries:
-                self.status = f"{prefix}Vault empty"
+                self.status = f"{profile_name}'s Vault empty" if profile_name else "Your Vault"
             else:
-                self.status = f"{prefix}Vault - {len(self.entries)} entries"
+                self.status = f"{profile_name}'s Vault - {len(self.entries)} entries"
             self.vault_header = f"{profile_name}'s Vault" if profile_name else "Your Vault"
             self._render_entries()
 
